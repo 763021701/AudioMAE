@@ -103,6 +103,9 @@ def get_args_parser():
     parser.add_argument('--dist_url', default='env://',
                         help='url used to set up distributed training')
 
+    # * Finetuning params
+    parser.add_argument('--finetune', default='',
+                        help='finetune from checkpoint')
 
     # For audioset
     parser.add_argument('--audio_exp', type=bool, default=True, help='audio exp')
@@ -171,9 +174,11 @@ def main(args):
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
         dataset_train = datasets.ImageFolder(os.path.join(args.data_path, 'train'), transform=transform_train)
     else:
-        norm_stats = {'audioset':[-4.2677393, 4.5689974], 'esc50':[-6.6268077, 5.358466], 'speechcommands':[-6.845978, 5.5654526]}
-        target_length = {'audioset':1024, 'esc50':512, 'speechcommands':128}
-        multilabel_dataset = {'audioset': True, 'esc50': False, 'k400': False, 'speechcommands': True}
+        norm_stats = {'audioset':[-4.2677393, 4.5689974], 'esc50':[-6.6268077, 5.358466], 'speechcommands':[-6.845978,
+            5.5654526], 'asvspoof2019':[-3.6524265, 4.995569]}
+        target_length = {'audioset':1024, 'esc50':512, 'speechcommands':128, 'asvspoof2019':512}
+        multilabel_dataset = {'audioset': True, 'esc50': False, 'k400': False, 'speechcommands': True,
+                'asvspoof2019':False}
         audio_conf = {'num_mel_bins': 128, 
                       'target_length': target_length[args.dataset], 
                       'freqm': args.freqm,
@@ -228,6 +233,22 @@ def main(args):
                                             )
     else:
         model = models_mae.__dict__[args.model](norm_pix_loss=args.norm_pix_loss)
+
+    if args.finetune:
+        checkpoint = torch.load(args.finetune, map_location='cpu')
+        print("Load pre-trained checkpoint from: %s" % args.finetune)
+        checkpoint_model = checkpoint['model']
+        state_dict = model.state_dict()
+        """
+        if not args.eval:
+            for k in ['head.weight', 'head.bias']:
+                if k in checkpoint_model and checkpoint_model[k].shape != state_dict[k].shape:
+                    print(f"Removing key {k} from pretrained checkpoint")
+                    del checkpoint_model[k]
+        """
+        # load pre-trained model
+        msg = model.load_state_dict(checkpoint_model, strict=False)
+        print(msg)
 
     model.to(device)
 

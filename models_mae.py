@@ -78,7 +78,8 @@ class MaskedAutoencoderViT(nn.Module):
             feat_size = (102,12)
         else:
             window_size= (4,4)
-            feat_size = (64,8)                
+            # feat_size = (16,8)
+            feat_size = (64,8)
         if self.decoder_mode == 1:
             decoder_modules = []
             for index in range(16):
@@ -215,7 +216,8 @@ class MaskedAutoencoderViT(nn.Module):
         specs: (N, 1, H, W)
         """
         p = self.patch_embed.patch_size[0]    
-        h = 1024//p
+        h = 512//p
+        # h = 1024//p
         w = 128//p
         x = x.reshape(shape=(x.shape[0], h, w, p, p, 1))
         x = torch.einsum('nhwpqc->nchpwq', x)
