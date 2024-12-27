@@ -1,0 +1,6 @@
+# .gitignore file for project
+
+**/__pycache__/
+output_dir
+ckpt
+tags
