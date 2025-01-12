@@ -79,7 +79,7 @@ class MaskedAutoencoderViT(nn.Module):
         else:
             window_size= (4,4)
             # feat_size = (16,8)
-            feat_size = (64,8)
+            feat_size = (32,8)
         if self.decoder_mode == 1:
             decoder_modules = []
             for index in range(16):

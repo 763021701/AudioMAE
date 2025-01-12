@@ -117,7 +117,8 @@ def get_args_parser():
     parser.add_argument('--freqm', help='frequency mask max length', type=int, default=0) # pretraining 0
     parser.add_argument('--timem', help='time mask max length', type=int, default=0) # pretraining 0
     parser.add_argument("--mixup", type=float, default=0, help="how many (0-1) samples need to be mixup during training")
-    parser.add_argument("--dataset", type=str, default="audioset", help="dataset", choices=["audioset", "esc50", "speechcommands"])
+    parser.add_argument("--dataset", type=str, default="asvspoof2019", help="dataset", choices=["audioset", "esc50",
+        "speechcommands", "asvspoof2019"])
     parser.add_argument("--use_fbank", type=bool, default=False)
     parser.add_argument("--fbank_dir", type=str, default="/checkpoint/berniehuang/ast/egs/esc50/data/ESC-50-master/fbank", help="fbank dir")
     parser.add_argument("--alpha", type=float, default=0.0, help="contrastive loss weight")
@@ -239,13 +240,12 @@ def main(args):
         print("Load pre-trained checkpoint from: %s" % args.finetune)
         checkpoint_model = checkpoint['model']
         state_dict = model.state_dict()
-        """
-        if not args.eval:
-            for k in ['head.weight', 'head.bias']:
-                if k in checkpoint_model and checkpoint_model[k].shape != state_dict[k].shape:
-                    print(f"Removing key {k} from pretrained checkpoint")
-                    del checkpoint_model[k]
-        """
+
+        for k in ['pos_embed', 'decoder_pos_embed']:
+            if k in checkpoint_model and checkpoint_model[k].shape != state_dict[k].shape:
+                print(f"Removing key {k} from pretrained checkpoint")
+                del checkpoint_model[k]
+
         # load pre-trained model
         msg = model.load_state_dict(checkpoint_model, strict=False)
         print(msg)
